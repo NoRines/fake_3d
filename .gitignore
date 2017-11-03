@@ -46,3 +46,7 @@ Makefile
 # Binary files #
 ################
 fake_3d
+
+# Bash stuff #
+##############
+run.sh
