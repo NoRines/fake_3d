@@ -50,3 +50,7 @@ fake_3d
 # Bash stuff #
 ##############
 run.sh
+
+# Some file vim creates #
+#########################
+*.swp
