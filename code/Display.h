@@ -1,6 +1,8 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
+#include "Graphics/FrameBuffers/Bitmap.h"
+
 struct SDL_Window;
 struct SDL_Renderer;
 struct SDL_Texture;
@@ -12,7 +14,7 @@ private:
 	~Display();
 
 public:
-	void update();
+	void update(const Bitmap& bitmap);
 
 	Display() = delete;
 	Display(const Display& display) = delete;
@@ -23,6 +25,8 @@ public:
 	static Display& get();
 	static void setWidth(int width);
 	static void setHeight(int height);
+	static int getWidth();
+	static int getHeight();
 
 private:
 	static int width;

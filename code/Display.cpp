@@ -1,6 +1,5 @@
 #include "Display.h"
 #include <SDL2/SDL.h>
-#include <iostream>
 
 int Display::width = 0;
 int Display::height = 0;
@@ -46,8 +45,9 @@ Display::~Display()
 	SDL_Quit();
 }
 
-void Display::update()
+void Display::update(const Bitmap& bitmap)
 {
+	bitmap.copyToByteBuffer(screenBuffer);
 	SDL_UpdateTexture
 	(
 		texture, 0,
@@ -80,4 +80,12 @@ void Display::setHeight(int height)
 	}
 }
 
+int Display::getWidth()
+{
+	return width;
+}
 
+int Display::getHeight()
+{
+	return height;
+}

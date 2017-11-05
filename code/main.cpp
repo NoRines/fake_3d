@@ -1,12 +1,20 @@
 #include <SDL2/SDL.h>
-#include <stdlib.h>
 #include "Display.h"
+#include "Graphics/FrameBuffers/Bitmap.h"
+
+#include <utility>
 
 int main(int argc, char** argv)
 {
-	Display::setWidth(640);
-	Display::setHeight(480);
+	constexpr int DISPLAY_WIDTH = 640;
+	constexpr int DISPLAY_HEIGHT = 480;
+
+	Display::setWidth(DISPLAY_WIDTH);
+	Display::setHeight(DISPLAY_HEIGHT);
 	Display::get();
+
+	Bitmap screenBitmap(Display::getWidth(), Display::getHeight());
+	screenBitmap.clear(0xFF0000FF);
 
 	bool running = true;
 
@@ -20,7 +28,7 @@ int main(int argc, char** argv)
 				running = false;
 			}
 		}
-		Display::get().update();
+		Display::get().update(screenBitmap);
 	}
 
 	return 0;
