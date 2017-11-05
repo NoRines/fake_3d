@@ -67,13 +67,7 @@ void Bitmap::clear(uint32_t color)
 	std::fill(buffer, buffer + (width*height), color);
 }
 
-void Bitmap::copyToByteBuffer(uint8_t* byteBuffer) const
+const uint32_t* const Bitmap::getBufferPointer() const
 {
-	uint32_t* tmpPtr = (uint32_t*)byteBuffer;
-	std::copy
-	(
-		buffer,
-		buffer + (width*height),
-		tmpPtr
-	);
+	return buffer;
 }

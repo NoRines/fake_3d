@@ -29,16 +29,11 @@ Display::Display(int width, int height, const char* title)
 		SDL_TEXTUREACCESS_STREAMING,
 		width, height
 	);
-
-	// Skapa en buffer som vi kan skriva till
-	screenBuffer = new unsigned char[width*height*4];
-	bufferPitch = width * 4;
 }
 
 Display::~Display()
 {
 	// Rensa allt
-	delete[] screenBuffer;
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
@@ -47,12 +42,11 @@ Display::~Display()
 
 void Display::update(const Bitmap& bitmap)
 {
-	bitmap.copyToByteBuffer(screenBuffer);
 	SDL_UpdateTexture
 	(
 		texture, 0,
-		screenBuffer,
-		bufferPitch
+		bitmap.getBufferPointer(),
+		bitmap.getWidth()
 	);
 	SDL_RenderCopy(renderer, texture, 0, 0);
 	SDL_RenderPresent(renderer);

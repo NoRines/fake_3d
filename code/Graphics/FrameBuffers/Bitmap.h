@@ -23,7 +23,7 @@ public:
 
 	void clear(uint32_t color);
 
-	void copyToByteBuffer(uint8_t* byteBuffer) const;
+	const uint32_t* const getBufferPointer() const;
 
 private:
 	int width;

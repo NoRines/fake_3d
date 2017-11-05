@@ -35,8 +35,6 @@ private:
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 	SDL_Texture* texture;
-	unsigned char* screenBuffer;
-	int bufferPitch;
 };
 
 #endif
