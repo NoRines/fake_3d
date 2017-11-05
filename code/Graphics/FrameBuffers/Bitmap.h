@@ -20,8 +20,11 @@ public:
 
 	int getWidth() const;
 	int getHeight() const;
+	int getByteWidth() const;
 
 	void clear(uint32_t color);
+
+	void setPixelColor(uint32_t color, int x, int y);
 
 	const uint32_t* const getBufferPointer() const;
 

@@ -1,8 +1,6 @@
 #include "Bitmap.h"
 #include <algorithm>
 
-#include <iostream>
-
 Bitmap::Bitmap(int width, int height):
 	width(width), height(height),
 	buffer(new uint32_t[width*height])
@@ -35,7 +33,6 @@ Bitmap::Bitmap(Bitmap&& bitmap):
 	buffer(bitmap.buffer)
 {
 	bitmap.buffer = nullptr;
-	std::cout << "Här" << std::endl;
 }
 
 Bitmap& Bitmap::operator=(Bitmap&& bitmap)
@@ -43,7 +40,6 @@ Bitmap& Bitmap::operator=(Bitmap&& bitmap)
 	std::swap(bitmap.width, width);
 	std::swap(bitmap.height, height);
 	std::swap(bitmap.buffer, buffer);
-	std::cout << "Härhar" << std::endl;
 	return *this;
 }
 
@@ -62,9 +58,19 @@ int Bitmap::getHeight() const
 	return height;
 }
 
+int Bitmap::getByteWidth() const
+{
+	return width * 4;
+}
+
 void Bitmap::clear(uint32_t color)
 {
 	std::fill(buffer, buffer + (width*height), color);
+}
+
+void Bitmap::setPixelColor(uint32_t color, int x, int y)
+{
+	buffer[x + (y*width)] = color;
 }
 
 const uint32_t* const Bitmap::getBufferPointer() const

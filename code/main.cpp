@@ -2,7 +2,7 @@
 #include "Display.h"
 #include "Graphics/FrameBuffers/Bitmap.h"
 
-#include <utility>
+#include <iostream>
 
 int main(int argc, char** argv)
 {
@@ -15,6 +15,11 @@ int main(int argc, char** argv)
 
 	Bitmap screenBitmap(Display::getWidth(), Display::getHeight());
 	screenBitmap.clear(0xFF0000FF);
+
+	for(int i = 0; i < 100; i++)
+	{
+		screenBitmap.setPixelColor(0xFFFF0000, i + 50, 100);
+	}
 
 	bool running = true;
 

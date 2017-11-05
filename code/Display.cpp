@@ -46,7 +46,7 @@ void Display::update(const Bitmap& bitmap)
 	(
 		texture, 0,
 		bitmap.getBufferPointer(),
-		bitmap.getWidth()
+		bitmap.getByteWidth()
 	);
 	SDL_RenderCopy(renderer, texture, 0, 0);
 	SDL_RenderPresent(renderer);
