@@ -35,12 +35,31 @@ int main(int argc, char** argv)
 
 	// lite test saker
 	double angle = 0.0;
+	float playerX = 200.0f;
+	float playerY = 200.0f;
+
+	bool up = false;
+	bool left = false;
+	bool right = false;
+
+	constexpr int target_fps = 18;
+	constexpr int target_frame_time = 1000/target_fps;
+
+	int old_tick = SDL_GetTicks();
 
 	bool running = true;
 
 	while(running)
 	{
-		angle += 0.001;
+		int current_tick = SDL_GetTicks();
+		int frameTime = current_tick - old_tick;
+		old_tick = current_tick;
+
+		if(frameTime < target_frame_time)
+		{
+			SDL_Delay(target_frame_time - frameTime);
+		}
+
 		SDL_Event e;
 		while(SDL_PollEvent(&e))
 		{
@@ -48,8 +67,46 @@ int main(int argc, char** argv)
 			{
 				running = false;
 			}
+			if(e.type == SDL_KEYDOWN)
+			{
+				if(e.key.keysym.sym == SDLK_UP)
+				{
+					up = true;
+				}
+				if(e.key.keysym.sym == SDLK_LEFT)
+				{
+					left = true;
+				}
+				if(e.key.keysym.sym == SDLK_RIGHT)
+				{
+					right = true;
+				}
+			}
+			if(e.type == SDL_KEYUP)
+			{
+				if(e.key.keysym.sym == SDLK_UP)
+				{
+					up = false;
+				}
+				if(e.key.keysym.sym == SDLK_LEFT)
+				{
+					left = false;
+				}
+				if(e.key.keysym.sym == SDLK_RIGHT)
+				{
+					right = false;
+				}
+			}
 		}
 		screenBitmap.clear(0xFF0000FF);
+		screenBitmap.drawLine(0xFF00FF00,
+			200, 200,
+			200 + cos(angle + 1.57f) * 20,
+			200 + sin(angle + 1.57f) * 20);
+		screenBitmap.drawLine(0xFF00FF00,
+			200, 200,
+			200 + cos(angle - 1.57f) * 20,
+			200 + sin(angle - 1.57f) * 20);
 		screenBitmap.drawLine(0xFF00FF00,
 			200, 200,
 			200 + cos(angle) * 100,
