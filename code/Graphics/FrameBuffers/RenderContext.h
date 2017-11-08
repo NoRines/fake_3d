@@ -15,6 +15,8 @@ public:
 	RenderContext& operator=(RenderContext&& renderContext) = delete;
 
 	void drawVerticalLine(uint32_t color, int x, int ymin, int ymax);
+
+	void drawLine(uint32_t color, int x0, int y0, int x1, int y1);
 };
 
 #endif
