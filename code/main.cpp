@@ -1,25 +1,21 @@
 #include <SDL2/SDL.h>
 #include "Display.h"
-#include "Graphics/FrameBuffers/Bitmap.h"
-
-#include <iostream>
+#include "Graphics/FrameBuffers/RenderContext.h"
 
 int main(int argc, char** argv)
 {
+	// Define the display constants
 	constexpr int DISPLAY_WIDTH = 640;
 	constexpr int DISPLAY_HEIGHT = 480;
 
+	// Set the display values
 	Display::setWidth(DISPLAY_WIDTH);
 	Display::setHeight(DISPLAY_HEIGHT);
 	Display::get();
 
-	Bitmap screenBitmap(Display::getWidth(), Display::getHeight());
+	// Create a bitmap that can be copied to the screen
+	RenderContext screenBitmap(Display::getWidth(), Display::getHeight());
 	screenBitmap.clear(0xFF0000FF);
-
-	for(int i = 0; i < 100; i++)
-	{
-		screenBitmap.setPixelColor(0xFFFF0000, i + 50, 100);
-	}
 
 	bool running = true;
 
