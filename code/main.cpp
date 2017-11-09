@@ -2,6 +2,8 @@
 #include "Display.h"
 #include "Graphics/FrameBuffers/RenderContext.h"
 
+#include <iostream>
+
 constexpr int DISPLAY_WIDTH = 640;
 constexpr int DISPLAY_HEIGHT = 480;
 
@@ -20,7 +22,11 @@ static const uint8_t map[MAP_SIZE * MAP_SIZE] =
 	  1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	  1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
-void drawMap_2d(RenderContext& renderContext);
+void drawMap_2d(
+	RenderContext& renderContext,
+	float playerX, float playerY,
+	float dirX, float dirY);
+float castRayInMap(float playerX, float playerY, float dirX, float dirY);
 
 int main(int argc, char** argv)
 {
@@ -34,9 +40,10 @@ int main(int argc, char** argv)
 	screenBitmap.clear(0xFF0000FF);
 
 	// lite test saker
-	double angle = 0.0;
-	float playerX = 200.0f;
-	float playerY = 200.0f;
+	float dirX = 1.0f;
+	float dirY = 0.0f;
+	float playerX = 3.0f;
+	float playerY = 3.0f;
 
 	bool up = false;
 	bool left = false;
@@ -98,27 +105,113 @@ int main(int argc, char** argv)
 				}
 			}
 		}
+
+		if(left)
+		{
+			float newDirX = cos(-0.05f)*dirX - sin(-0.05f)*dirY;
+			float newDirY = sin(-0.05f)*dirX + cos(-0.05f)*dirY;
+			dirX = newDirX;
+			dirY = newDirY;
+		}
+		if(right)
+		{
+			float newDirX = cos(0.05f)*dirX - sin(0.05f)*dirY;
+			float newDirY = sin(0.05f)*dirX + cos(0.05f)*dirY;
+			dirX = newDirX;
+			dirY = newDirY;
+		}
+		if(up)
+		{
+			playerX += 0.06f * dirX;
+			playerY += 0.06f * dirY;
+		}
 		screenBitmap.clear(0xFF0000FF);
-		screenBitmap.drawLine(0xFF00FF00,
-			200, 200,
-			200 + cos(angle + 1.57f) * 20,
-			200 + sin(angle + 1.57f) * 20);
-		screenBitmap.drawLine(0xFF00FF00,
-			200, 200,
-			200 + cos(angle - 1.57f) * 20,
-			200 + sin(angle - 1.57f) * 20);
-		screenBitmap.drawLine(0xFF00FF00,
-			200, 200,
-			200 + cos(angle) * 100,
-			200 + sin(angle) * 100);
-		drawMap_2d(screenBitmap);
+		drawMap_2d
+		(
+			screenBitmap,
+			playerX, playerY,
+			dirX, dirY
+		);
 		Display::get().update(screenBitmap);
 	}
 
 	return 0;
 }
 
-void drawMap_2d(RenderContext& renderContext)
+float castRayInMap(float playerX, float playerY, float dirX, float dirY)
+{
+	if(dirX < 0.001f && dirX > -0.001f)
+	{
+		dirX += 0.001f;
+	}
+	if(dirY < 0.001f && dirY > -0.001f)
+	{
+		dirY += 0.001f;
+	}
+
+	const float xUnitDist = sqrt(1 + ((dirY*dirY) / (dirX*dirX)));
+	const float yUnitDist = sqrt(1 + ((dirX*dirX) / (dirY*dirY)));
+
+	float xDist = 0.0f;
+	float yDist = 0.0f;
+
+	int mapX = (int)playerX;
+	int mapY = (int)playerY;
+
+	int stepX = 0;
+	int stepY = 0;
+
+	if(dirX > 0)
+	{
+		stepX = 1;
+		xDist = ((float)(mapX + 1) - playerX) * xUnitDist;
+	}
+	else
+	{
+		stepX = -1;
+		xDist = (playerX - (float)(mapX)) * xUnitDist;
+	}
+
+	if(dirY > 0)
+	{
+		stepY = 1;
+		yDist = ((float)(mapY + 1) - playerY) * yUnitDist;
+	}
+	else
+	{
+		stepY = -1;
+		yDist = (playerY - (float)(mapY)) * yUnitDist;
+	}
+
+	bool hitWall = false;
+	int side = 1;
+	while(!hitWall)
+	{
+		if(xDist < yDist)
+		{
+			xDist += xUnitDist;
+			mapX += stepX;
+			side = 0;
+		}
+		else
+		{
+			yDist += yUnitDist;
+			mapY += stepY;
+			side = 1;
+		}
+		if(map[mapX + MAP_SIZE*mapY] != 0)
+		{
+			hitWall = true;
+		}
+	}
+
+	return (side == 0) ? (xDist-xUnitDist) : (yDist-yUnitDist);
+}
+
+void drawMap_2d(
+	RenderContext& renderContext,
+	float playerX, float playerY,
+	float dirX, float dirY)
 {
 	constexpr int cellW = DISPLAY_WIDTH / MAP_SIZE;
 	constexpr int cellH = DISPLAY_HEIGHT / MAP_SIZE;
@@ -142,4 +235,24 @@ void drawMap_2d(RenderContext& renderContext)
 			}
 		}
 	}
+	#define screen_coords_x(X) \
+		((X / MAP_SIZE) * DISPLAY_WIDTH)
+	#define screen_coords_y(Y) \
+		((Y / MAP_SIZE) * DISPLAY_HEIGHT)
+
+	float distToWall = castRayInMap(playerX, playerY, dirX, dirY);
+
+	renderContext.drawLine(0xFF00FF00,
+		screen_coords_x(playerX), screen_coords_y(playerY),
+		screen_coords_x(playerX) + screen_coords_x(dirX * distToWall),
+		screen_coords_y(playerY) + screen_coords_y(dirY * distToWall));
+
+	renderContext.drawLine(0xFF00FF00,
+		screen_coords_x(playerX), screen_coords_y(playerY),
+		screen_coords_x(playerX) - dirY * 10,
+		screen_coords_y(playerY) + dirX * 10);
+	renderContext.drawLine(0xFF00FF00,
+		screen_coords_x(playerX), screen_coords_y(playerY),
+		screen_coords_x(playerX) + dirY * 10,
+		screen_coords_y(playerY) - dirX * 10);
 }
