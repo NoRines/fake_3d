@@ -14,6 +14,15 @@ void RenderContext::drawVerticalLine(uint32_t color, int x, int ymin, int ymax)
 	}
 }
 
+void RenderContext::drawHorizontalLine(
+	uint32_t color, int y, int xmin, int xmax)
+{
+	for(int x = xmin; x < xmax; x++)
+	{
+		setPixelColor(color, x, y);
+	}
+}
+
 void RenderContext::drawLine(uint32_t color, int x0, int y0, int x1, int y1)
 {
 	bool x_axis = true;
@@ -31,6 +40,22 @@ void RenderContext::drawLine(uint32_t color, int x0, int y0, int x1, int y1)
 	}
 	else if(x0 == x1)
 	{
+		if(x_axis)
+		{
+			drawVerticalLine
+			(
+				color, x0,
+				std::min(y0, y1), std::max(y0, y1)
+			);
+		}
+		else
+		{
+			drawHorizontalLine
+			(
+				color, x0,
+				std::min(y0, y1), std::max(y0, y1)
+			);
+		}
 		return;
 	}
 	const int slope = ((y1 - y0) << 16) / (x1 - x0);
