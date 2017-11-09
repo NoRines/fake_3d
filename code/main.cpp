@@ -13,13 +13,13 @@ constexpr int MAP_SIZE = 10;
 static const uint8_t map[MAP_SIZE * MAP_SIZE] = 
 	{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	  1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
 	  1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 1, 0, 0, 0, 0, 0, 1, 0, 1,
 	  1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	  1, 0, 0, 0, 0, 0, 0, 1, 0, 1,
+	  1, 0, 1, 0, 0, 0, 0, 0, 0, 1,
 	  1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	  1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	  1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	  1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 0, 0, 1, 0, 0, 1, 0, 0, 1,
 	  1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 void drawMap_2d(
@@ -240,13 +240,22 @@ void drawMap_2d(
 	#define screen_coords_y(Y) \
 		((Y / MAP_SIZE) * DISPLAY_HEIGHT)
 
-	float distToWall = castRayInMap(playerX, playerY, dirX, dirY);
+	constexpr float FOV = 1.047198f;
+	constexpr float HALF_FOV = FOV / 2.0f;
 
-	renderContext.drawLine(0xFF00FF00,
-		screen_coords_x(playerX), screen_coords_y(playerY),
-		screen_coords_x(playerX) + screen_coords_x(dirX * distToWall),
-		screen_coords_y(playerY) + screen_coords_y(dirY * distToWall));
+	for(int x = 0; x < DISPLAY_WIDTH; x++)
+	{
+		float angle = -HALF_FOV + x * (FOV / DISPLAY_WIDTH);
+		float tmpDirX = cos(angle)*dirX - sin(angle)*dirY;
+		float tmpDirY = sin(angle)*dirX + cos(angle)*dirY;
 
+		float distToWall = castRayInMap(playerX, playerY, tmpDirX, tmpDirY);
+
+		renderContext.drawLine(0xFF00FF00,
+			screen_coords_x(playerX), screen_coords_y(playerY),
+			screen_coords_x(playerX) + screen_coords_x(tmpDirX * distToWall),
+			screen_coords_y(playerY) + screen_coords_y(tmpDirY * distToWall));
+	}
 	renderContext.drawLine(0xFF00FF00,
 		screen_coords_x(playerX), screen_coords_y(playerY),
 		screen_coords_x(playerX) - dirY * 10,
