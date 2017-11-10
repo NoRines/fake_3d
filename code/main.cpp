@@ -22,11 +22,18 @@ static const uint8_t map[MAP_SIZE * MAP_SIZE] =
 	  1, 0, 0, 1, 0, 0, 1, 0, 0, 1,
 	  1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
+float castRayInMap(
+	float playerX, float playerY,
+	float dirX, float dirY,
+	int& side);
 void drawMap_2d(
 	RenderContext& renderContext,
 	float playerX, float playerY,
 	float dirX, float dirY);
-float castRayInMap(float playerX, float playerY, float dirX, float dirY);
+void drawMap_3d(
+	RenderContext& renderContext,
+	float playerX, float playerY,
+	float dirX, float dirY);
 
 int main(int argc, char** argv)
 {
@@ -126,7 +133,7 @@ int main(int argc, char** argv)
 			playerY += 0.06f * dirY;
 		}
 		screenBitmap.clear(0xFF0000FF);
-		drawMap_2d
+		drawMap_3d
 		(
 			screenBitmap,
 			playerX, playerY,
@@ -138,7 +145,10 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-float castRayInMap(float playerX, float playerY, float dirX, float dirY)
+float castRayInMap(
+	float playerX, float playerY,
+	float dirX, float dirY,
+	int& side)
 {
 	if(dirX < 0.001f && dirX > -0.001f)
 	{
@@ -184,7 +194,6 @@ float castRayInMap(float playerX, float playerY, float dirX, float dirY)
 	}
 
 	bool hitWall = false;
-	int side = 1;
 	while(!hitWall)
 	{
 		if(xDist < yDist)
@@ -249,12 +258,16 @@ void drawMap_2d(
 		float tmpDirX = cos(angle)*dirX - sin(angle)*dirY;
 		float tmpDirY = sin(angle)*dirX + cos(angle)*dirY;
 
-		float distToWall = castRayInMap(playerX, playerY, tmpDirX, tmpDirY);
+		int side;
+		float distToWall = castRayInMap(
+			playerX, playerY, tmpDirX, tmpDirY, side);
 
 		renderContext.drawLine(0xFF00FF00,
 			screen_coords_x(playerX), screen_coords_y(playerY),
-			screen_coords_x(playerX) + screen_coords_x(tmpDirX * distToWall),
-			screen_coords_y(playerY) + screen_coords_y(tmpDirY * distToWall));
+			screen_coords_x(playerX) +
+			screen_coords_x(tmpDirX * distToWall),
+			screen_coords_y(playerY) +
+			screen_coords_y(tmpDirY * distToWall));
 	}
 	renderContext.drawLine(0xFF00FF00,
 		screen_coords_x(playerX), screen_coords_y(playerY),
@@ -264,4 +277,48 @@ void drawMap_2d(
 		screen_coords_x(playerX), screen_coords_y(playerY),
 		screen_coords_x(playerX) + dirY * 10,
 		screen_coords_y(playerY) - dirX * 10);
+}
+
+void drawMap_3d(
+	RenderContext& renderContext,
+	float playerX, float playerY,
+	float dirX, float dirY)
+{
+	constexpr float FOV = 1.047198f;
+	constexpr float HALF_FOV = FOV / 2.0f;
+
+	for(int x = 0; x < DISPLAY_WIDTH; x++)
+	{
+		float angle = -HALF_FOV + x * (FOV / DISPLAY_WIDTH);
+		float tmpDirX = cos(angle)*dirX - sin(angle)*dirY;
+		float tmpDirY = sin(angle)*dirX + cos(angle)*dirY;
+
+		int side;
+		float distToWall = castRayInMap(
+			playerX, playerY, tmpDirX, tmpDirY, side);
+
+		int wallHeight = (int)((float)DISPLAY_HEIGHT / distToWall);
+
+		int ymin = (DISPLAY_HEIGHT / 2) - (wallHeight / 2);
+		if(ymin < 0)
+		{
+			ymin = 0;
+		}
+		int ymax = (DISPLAY_HEIGHT / 2) + (wallHeight / 2);
+		if(ymax > DISPLAY_HEIGHT)
+		{
+			ymax = DISPLAY_HEIGHT;
+		}
+
+		if(side)
+		{
+			renderContext.drawVerticalLine(
+				0xFFAAFF00, x, ymin, ymax);
+		}
+		else
+		{
+			renderContext.drawVerticalLine(
+				0xFF00FFAA, x, ymin, ymax);
+		}
+	}
 }
