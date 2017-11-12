@@ -55,6 +55,7 @@ int main(int argc, char** argv)
 	bool up = false;
 	bool left = false;
 	bool right = false;
+	bool draw3d = false;
 
 	constexpr int target_fps = 18;
 	constexpr int target_frame_time = 1000/target_fps;
@@ -95,6 +96,10 @@ int main(int argc, char** argv)
 				{
 					right = true;
 				}
+				if(e.key.keysym.sym == SDLK_ESCAPE)
+				{
+					draw3d = !draw3d;
+				}
 			}
 			if(e.type == SDL_KEYUP)
 			{
@@ -133,12 +138,24 @@ int main(int argc, char** argv)
 			playerY += 0.06f * dirY;
 		}
 		screenBitmap.clear(0xFF0000FF);
-		drawMap_3d
-		(
-			screenBitmap,
-			playerX, playerY,
-			dirX, dirY
-		);
+		if(draw3d)
+		{
+			drawMap_3d
+			(
+				screenBitmap,
+				playerX, playerY,
+				dirX, dirY
+			);
+		}
+		else
+		{
+			drawMap_2d
+			(
+				screenBitmap,
+				playerX, playerY,
+				dirX, dirY
+			);
+		}
 		Display::get().update(screenBitmap);
 	}
 
@@ -152,11 +169,11 @@ float castRayInMap(
 {
 	if(dirX < 0.001f && dirX > -0.001f)
 	{
-		dirX += 0.001f;
+		dirX = 0.001f;
 	}
 	if(dirY < 0.001f && dirY > -0.001f)
 	{
-		dirY += 0.001f;
+		dirY = 0.001f;
 	}
 
 	const float xUnitDist = sqrt(1 + ((dirY*dirY) / (dirX*dirX)));
@@ -214,7 +231,21 @@ float castRayInMap(
 		}
 	}
 
-	return (side == 0) ? (xDist-xUnitDist) : (yDist-yUnitDist);
+	// Tar bort fiskögo effekt
+	//         |\
+	//       A | \ C
+	//         |  \
+	//         |   \     dA |\ 1
+	//         -----        --
+	//           B          dB  
+	// Där A är skillnad i x eller y, C är längden vi vill ha
+	// och dA är riktning i x eller y. (dA/dB) == (A/B)
+	//
+	// Eftersom (C/A) == (1/dA)
+	// så C == (A/dA)
+	return (side == 0) ?
+		(mapX - playerX + (1-stepX)/2) / dirX :
+		(mapY - playerY + (1-stepY)/2) / dirY;
 }
 
 void drawMap_2d(
@@ -287,11 +318,18 @@ void drawMap_3d(
 	constexpr float FOV = 1.047198f;
 	constexpr float HALF_FOV = FOV / 2.0f;
 
+	constexpr float DIST_TO_SCREEN = 1.0f;
+	constexpr float HALF_SCREEN_SIZE = DIST_TO_SCREEN * tan(HALF_FOV);
+
+	float screenX = -dirY;
+	float screenY = dirX;
+
 	for(int x = 0; x < DISPLAY_WIDTH; x++)
 	{
-		float angle = -HALF_FOV + x * (FOV / DISPLAY_WIDTH);
-		float tmpDirX = cos(angle)*dirX - sin(angle)*dirY;
-		float tmpDirY = sin(angle)*dirX + cos(angle)*dirY;
+		float screenFactor = ((float)x / (float)(DISPLAY_WIDTH/2)) - 1.0f;
+
+		float tmpDirX = dirX * DIST_TO_SCREEN + screenFactor * HALF_SCREEN_SIZE * screenX;
+		float tmpDirY = dirY * DIST_TO_SCREEN + screenFactor * HALF_SCREEN_SIZE * screenY;
 
 		int side;
 		float distToWall = castRayInMap(
